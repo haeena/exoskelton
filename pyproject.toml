@@ -34,7 +34,7 @@ safety = "^1.8.5"
 python-taint = "^0.42"
 
 [tool.black]
-line-length = 90
+line-length = 180
 target-version = ['py38']
 include = '\.pyi?$'
 exclude = '''
