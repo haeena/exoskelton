@@ -32,9 +32,10 @@ tox = "^3.14"
 bandit = "^1.6.2"
 safety = "^1.8.5"
 python-taint = "^0.42"
+flake8-bugbear = "^19.8.0"
 
 [tool.black]
-line-length = 180
+line-length = 80
 target-version = ['py38']
 include = '\.pyi?$'
 exclude = '''
