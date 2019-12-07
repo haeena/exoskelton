@@ -12,6 +12,24 @@ repos:
     - id: check-yaml
     - id: check-toml
 
+- repo: https://github.com/asottile/pyupgrade
+  rev: v1.25.1
+  hooks:
+    - id: pyupgrade
+      args: [--py36-plus]
+
+- repo: https://github.com/asottile/seed-isort-config
+  rev: v1.9.2
+  hooks:
+    - id: seed-isort-config
+      args: [--exclude=tests/.*\.py, --application-directories=src/]
+
+- repo: https://github.com/timothycrosley/isort
+  rev: 4.3.21
+  hooks:
+    - id: isort
+      additional_dependencies: ["isort[pyproject]"]
+
 - repo: local
   hooks:
     - id: poetry-export
@@ -42,40 +60,19 @@ repos:
     - id: bandit
       args: [--verbose, --ini, .banditrc, -ll, --recursive, src/]
 
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: 'v0.740'
+  hooks:
+    - id: mypy
+
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v2.4.0
   hooks:
     - id: debug-statements
     - id: name-tests-test
     - id: check-docstring-first
-
-- repo: https://github.com/asottile/pyupgrade
-  rev: v1.25.1
-  hooks:
-    - id: pyupgrade
-      args: [--py36-plus]
-
-- repo: https://github.com/asottile/seed-isort-config
-  rev: v1.9.2
-  hooks:
-    - id: seed-isort-config
-      args: [--exclude=tests/.*\.py]
-
-- repo: https://github.com/timothycrosley/isort
-  rev: 4.3.21
-  hooks:
-    - id: isort
-
-- repo: https://github.com/PyCQA/flake8
-  rev: '3.7.9'
-  hooks:
     - id: flake8
       additional_dependencies: [flake8-bugbear]
-
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: 'v0.740'
-  hooks:
-    - id: mypy
 
 - repo: https://github.com/psf/black
   rev: 19.3b0
