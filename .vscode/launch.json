@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Exoskelton: run local mode",
+            "type": "python",
+            "request": "launch",
+            "module": "exoskelton.local",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Exoskelton: Attach (Remote Debug on REMOTE_HOST)",
+            "type": "python",
+            "request": "attach",
+            "port": 43443,
+            "host": "${env:REMOTE_HOST}",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/usr/src/exoskelton"
+                }
+            ],
+            "preLaunchTask": "start docker remote",
+            "postDebugTask": "stop docker remote"
+        },
+        {
+            "name": "Exoskelton: Attach (Remote Debug on REMOTE_HOST without restart)",
+            "type": "python",
+            "request": "attach",
+            "port": 43443,
+            "host": "${env:REMOTE_HOST}",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/usr/src/exoskelton"
+                }
+            ]
+        }
+    ]
+}

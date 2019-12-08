@@ -1,0 +1,59 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "docker build image",
+            "type": "shell",
+            "command": "DOCKER_HOST=ssh://${env:REMOTE_HOST} docker build ${workspaceFolder} --tag exoskelton",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "docker run",
+            "type": "shell",
+            "command": "DOCKER_HOST=ssh://${env:REMOTE_HOST} docker kill exoskelton; DOCKER_HOST=ssh://${env:REMOTE_HOST} docker run --rm -d -p 3000:3000 --name exoskelton exoskelton",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "docker build image"
+            ]
+        },
+        {
+            "label": "docker run with debug",
+            "type": "shell",
+            "command": "DOCKER_HOST=ssh://${env:REMOTE_HOST} docker kill exoskelton; DOCKER_HOST=ssh://${env:REMOTE_HOST} docker run --rm -d -p 3000:3000 -p 43443:43443 --name exoskelton exoskelton python -m exoskelton.run_remote_debug; sleep 5",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "docker build image"
+            ]
+        },
+        {
+            "label": "docker stop",
+            "type": "shell",
+            "command": "DOCKER_HOST=ssh://${env:REMOTE_HOST} docker kill exoskelton",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "start docker remote",
+            "dependsOn": [
+                "docker run with debug"
+            ]
+        },
+        {
+            "label": "stop docker remote",
+            "dependsOn": [
+                "docker stop"
+            ]
+        }
+    ]
+}
