@@ -16,5 +16,7 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir . \
     && pip install --no-cache-dir ptvsd
 
+WORKDIR /usr/src/exoskelton/src
+
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["python", "-m", "exoskelton.run"]

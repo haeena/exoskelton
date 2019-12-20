@@ -17,8 +17,8 @@
             "host": "${env:REMOTE_HOST}",
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "/usr/src/exoskelton"
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "/usr/src/exoskelton/src"
                 }
             ],
             "preLaunchTask": "start docker remote",
@@ -32,8 +32,8 @@
             "host": "${env:REMOTE_HOST}",
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "/usr/src/exoskelton"
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "/usr/src/exoskelton/src"
                 }
             ]
         }
