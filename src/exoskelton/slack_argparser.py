@@ -1,19 +1,24 @@
 import re
 import textwrap as _textwrap
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from typing import Any, List, Optional
 
 
 class PreserveWhiteSpaceWrapRawTextHelpFormatter(RawDescriptionHelpFormatter):
-    def __init__(self, **kwarg):  # type: ignore
+    """
+    PreserveWhiteSpaceWrapRawTextHelpFormatter ensure help string nicely formatted on slack
+    """
+
+    def __init__(self, **kwarg: Any):
         super().__init__(width=1000, **kwarg)
 
-    def __add_whitespace(self, idx, iWSpace, text):  # type: ignore
+    def __add_whitespace(self, idx: int, iWSpace: int, text: str) -> str:
         if idx == 0:
             return text
         return (" " * iWSpace) + text
 
-    def _split_lines(self, text, width):  # type: ignore
-        textRows = text.splitlines()
+    def _split_lines(self, text: str, width: int) -> List[str]:
+        textRows: List[Any] = text.splitlines()
         for idx, line in enumerate(textRows):
             search = re.search(r"\s*[0-9\-]{0,}\.?\s*", line)
             if line.strip() == "":
@@ -30,8 +35,7 @@ class PreserveWhiteSpaceWrapRawTextHelpFormatter(RawDescriptionHelpFormatter):
 
 
 class SlackArgumentParserException(Exception):
-    def __init__(self, message):  # type: ignore
-        self.message = message
+    pass
 
 
 class SlackArgumentParser(ArgumentParser):
@@ -39,18 +43,17 @@ class SlackArgumentParser(ArgumentParser):
     SlackArgumentParser is modified to keep process working after parse error
     """
 
-    def __init__(self, **kwarg):  # type: ignore
+    def __init__(self, **kwarg: Any):
         super().__init__(
             formatter_class=PreserveWhiteSpaceWrapRawTextHelpFormatter, **kwarg
         )
 
-    def add_subparsers(self, **kwarg) -> "SlackArgumentParser":  # type: ignore
-        return super().add_subparsers(**kwarg)  # type: ignore
-
-    def _print_message(self, message, file=None) -> None:  # type: ignore
+    def _print_message(self, message: str, file: Optional[Any] = None) -> None:
         if message:
             raise SlackArgumentParserException(message)
 
-    def exit(self, status=0, message=None) -> None:  # type: ignore
+    def exit(  # type: ignore
+        self, status: int = 0, message: Optional[str] = None
+    ) -> None:
         if message:
             self._print_message(message)
