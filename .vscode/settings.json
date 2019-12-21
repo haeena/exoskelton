@@ -10,8 +10,7 @@
     "python.linting.flake8Enabled": true,
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
-        "tests",
-        "--cov=exoskelton"
+        "tests"
     ],
     "python.linting.mypyEnabled": true,
     "python.testing.unittestEnabled": false,
