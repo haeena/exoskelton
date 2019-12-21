@@ -1,7 +1,7 @@
 import abc
 import re
 import unicodedata
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from mypy_extensions import Arg, KwArg
 from slack import WebClient as SlackClient
@@ -107,33 +107,59 @@ class PluginBase(metaclass=abc.ABCMeta):
 
     def format_table(
         self,
-        items: List[object],
-        header_lambdas: Dict[str, Callable[[object], str]],
-    ) -> str:
-        lines = []
-        headers_width = {}
-        for h, l in header_lambdas.items():
-            headers_width[h] = max(
-                [self.text_display_len(l(item)) for item in items] + [len(h)]
-            )
+        items: List[Union[Dict[str, str], List[str]]],
+        header: Optional[List[str]] = None,
+        first_item_is_header: bool = False,  # for items: List[str]
+    ) -> List[str]:
 
-        header_line = " | ".join(
-            [
-                f"{self.text_padded(h, headers_width[h])}"
-                for h, l in header_lambdas.items()
+        rows: List[List[str]]
+        if isinstance(items[0], dict):
+            header = (
+                items[0].keys() if header is None else header
+            )  # type: ignore
+            rows = [
+                [item[key] for key in header] for item in items
+            ]  # type: ignore
+
+        elif isinstance(items, list):
+            if header is None and first_item_is_header:
+                header = items.pop(0)  # type: ignore
+            rows = items  # type: ignore
+
+        else:
+            raise ValueError("invalid type for items")
+
+        if header is None:
+            widths = [
+                max(map(self.text_display_len, column)) for column in zip(*rows)
             ]
-        )
-        lines.append(header_line)
-        lines.append("-" * len(header_line))
-        for item in items:
-            lines.append(
-                " | ".join(
-                    [
-                        f"{self.text_padded(l(item), headers_width[h])}"
-                        for h, l in header_lambdas.items()
-                    ]
-                )
+        else:
+            widths = [
+                max(map(self.text_display_len, column))
+                for column in zip(*([header] + rows))
+            ]
+
+        # TODO: separate lines by max post length
+        lines = []
+        if header is not None:
+            header_line = " | ".join(
+                [
+                    f"{self.text_padded(column, widths[column_index])}"
+                    for column_index, column in enumerate(header)
+                ]
             )
+            lines.append(header_line)
+            lines.append("-" * len(header_line))
+
+        for row in rows:
+            row_line = " | ".join(
+                [
+                    f"{self.text_padded(column, widths[column_index])}"
+                    for column_index, column in enumerate(row)
+                ]
+            )
+            lines.append(row_line)
 
         text = "\n".join(lines)
-        return "```" + text + "```"
+
+        return ["```\n" + text + "\n```"]
