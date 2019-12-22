@@ -8,6 +8,7 @@ from slack import WebClient as SlackClient
 
 from exoskelton.plugin_loader import PluginLoader
 from exoskelton.slack_argparser import SlackArgumentParserException
+from exoskelton.slack_event_context import SlackEventContextFactory
 
 
 class SlackDummyClient:
@@ -60,38 +61,46 @@ slack_dummy_client = SlackDummyClient(slack_bot_token)
 
 pl = PluginLoader(slack_dummy_client, "exoskelton")
 parser = pl.create_parser()
-
-
-def depretty_quotes(text: str) -> str:
-    return (
-        text.replace("\u201c", '"')
-        .replace("\u201d", '"')
-        .replace("\u2018", "'")
-        .replace("\u2019", "'")
-    )
+context_factory = SlackEventContextFactory(slack_dummy_client)
 
 
 def handle_message(text: str) -> None:
-    channel = "dummy_channel"
-    user = "U00SV0WTH"
-    ts = "1549692377.007700"
+    event_data = {
+        "token": "one-long-verification-token",
+        "team_id": "TXXXXXXXX",
+        "api_app_id": "AXXXXXXXXX",
+        "event": {
+            "type": "message",
+            "text": text,
+            "channel": "dummy_channel",
+            "user": "UXXXXXXX1",
+            "ts": "1549692377.007700",
+        },
+        "type": "event_callback",
+        "authed_users": ["UXXXXXXX1"],
+        "event_id": "Ev08MFMKH6",
+        "event_time": 1234567890,
+    }
 
-    if text.startswith("exoskelton"):
-        text = depretty_quotes(text)
-        command_str = shlex.split(text)[1:]
+    context = context_factory.create(event_data=event_data)
+    if context is None:
+        # TODO: logging
+        print("Failed to parse event_data")
+        return
+
+    if context.text.startswith(parser.prog):
+        command_str = shlex.split(context.text)[1:]
         try:
             args = parser.parse_args(command_str)
-            args.channel = channel
-            args.user = user
-            args.ts = ts
+            args.context = context
             args.handler(**vars(args))
         except SlackArgumentParserException as e:
-            slack_dummy_client.chat_postEphemeral(
-                user=user, channel=channel, text=e
-            )
+            # TODO: logging
+            context.reply_ephemeral(f"Failed to parse command: {e}")
         except Exception:
+            # TODO: logging
             err = sys.exc_info()
-            print(err)
+            context.reply_ephemeral(f"Failure on executing command: {err}")
 
 
 if __name__ == "__main__":

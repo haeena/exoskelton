@@ -4,6 +4,15 @@ from slack import WebClient as SlackClient
 from slack.errors import SlackApiError
 
 
+def depretty_quotes(text: str) -> str:
+    return (
+        text.replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .replace("\u2018", "'")
+        .replace("\u2019", "'")
+    )
+
+
 class SlackEventContextFactory:
     def __init__(self, slack_client: SlackClient):
         self.slack_client = slack_client
@@ -31,7 +40,8 @@ class SlackEventContextMessage(SlackEventContextBase):
 
         event: Dict[str, str] = event_data["event"]
         self.user: str = event["user"]
-        self.text: str = event["text"]
+        self.original_text: str = event["text"]
+        self.text: str = depretty_quotes(self.original_text)
         self.channel: str = event["channel"]
         self.ts: str = event["ts"]
 

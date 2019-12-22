@@ -1,13 +1,15 @@
 import json
 import shlex
 import sys
+from typing import Any
 
-from flask import Flask, make_response, request
+from flask import Flask, Response, make_response, request
 from slack import WebClient as SlackClient
 from slackeventsapi import SlackEventAdapter
 
 from exoskelton.plugin_loader import PluginLoader
 from exoskelton.slack_argparser import SlackArgumentParserException
+from exoskelton.slack_event_context import SlackEventContextFactory
 
 
 with open("slack_credential.json") as f:
@@ -21,6 +23,7 @@ slack_bot_client = SlackClient(slack_bot_token)
 
 pl = PluginLoader(slack_bot_client, "exoskelton")
 parser = pl.create_parser()
+context_factory = SlackEventContextFactory(slack_bot_client)
 
 app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(
@@ -28,17 +31,8 @@ slack_events_adapter = SlackEventAdapter(
 )
 
 
-def depretty_quotes(text):  # type: ignore
-    return (
-        text.replace("\u201c", '"')
-        .replace("\u201d", '"')
-        .replace("\u2018", "'")
-        .replace("\u2019", "'")
-    )
-
-
 @app.route("/exoskelton/interactive", methods=["POST"])
-def handle_interactive_post():  # type: ignore
+def handle_interactive_post() -> Response:
     request_body = json.loads(request.form["payload"])
 
     if request_body["token"] != slack_signing_secret:
@@ -49,36 +43,36 @@ def handle_interactive_post():  # type: ignore
 
 
 @slack_events_adapter.on("message")
-def handle_message(event_data):  # type: ignore
-    message = event_data["event"]
-    text = message.get("text")
-    channel = message["channel"]
-    ts = message["ts"]
+def handle_message(event_data: Any) -> None:
 
     # ignore bot messages
-    if not message.get("subtype") is None:
+    if not event_data["event"].get("subtype") is None:
         return
-    user = message["user"]
 
+    # ignore retry message
     if "X-Slack-Retry-Num" in request.headers:
         return
 
-    if text.startswith("exoskelton"):
-        text = depretty_quotes(text)
-        command_str = shlex.split(text)[1:]
+    context = context_factory.create(event_data=event_data)
+    if context is None:
+        # TODO: logging
+        print("Failed to parse event_data")
+        return
+
+    # TODO: configurable keyword
+    if context.text.startswith(parser.prog):
+        command_str = shlex.split(context.text)[1:]
         try:
             args = parser.parse_args(command_str)
-            args.channel = channel
-            args.user = user
-            args.ts = ts
+            args.context = context
             args.handler(**vars(args))
         except SlackArgumentParserException as e:
-            slack_bot_client.chat_postEphemeral(
-                user=user, channel=channel, text=e
-            )
+            # TODO: logging
+            context.reply_ephemeral(f"Failed to parse command: {e}")
         except Exception:
+            # TODO: logging
             err = sys.exc_info()
-            print(err)
+            context.reply_ephemeral(f"Failure on executing command: {err}")
 
 
 if __name__ == "__main__":

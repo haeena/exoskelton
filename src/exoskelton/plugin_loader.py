@@ -1,19 +1,17 @@
 import importlib
 import inspect
-import pkgutil
 from typing import Any, Callable, Dict, List
 
 from mypy_extensions import Arg, KwArg
 from slack import WebClient as SlackClient
 
-import exoskelton.plugins
 from exoskelton.plugin_base import PluginBase
 from exoskelton.slack_argparser import SlackArgumentParser
 
 
 class PluginLoader:
 
-    plugins_to_load: List[str] = ["exoskelton.plugins.hello.hello"]
+    plugins_to_load: List[str] = ["exoskelton.plugins.hello.hello.Hello"]
 
     def __init__(self, slack_client: SlackClient, prog: str) -> None:
         self.prog = prog
@@ -24,13 +22,13 @@ class PluginLoader:
     def load_plugins(self) -> None:
         plugin_class = {
             module_name + "." + class_name: obj
-            for finder, module_name, ispkg in pkgutil.walk_packages(
-                exoskelton.plugins.__path__, exoskelton.plugins.__name__ + "."  # type: ignore
+            for module_name, expected_class_name in map(
+                lambda x: x.rsplit(".", 1), self.plugins_to_load
             )
             for class_name, obj in inspect.getmembers(
                 importlib.import_module(module_name)
             )
-            if module_name + "." + class_name in self.plugins_to_load
+            if expected_class_name == class_name
             and inspect.isclass(obj)
             and issubclass(obj, PluginBase)
         }
