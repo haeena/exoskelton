@@ -96,7 +96,7 @@ def handle_message(text: str) -> None:
             args.handler(**vars(args))
         except SlackArgumentParserException as e:
             # TODO: logging
-            context.reply_ephemeral(f"Failed to parse command: {e}")
+            context.reply_ephemeral(str(e))
         except Exception:
             # TODO: logging
             err = sys.exc_info()

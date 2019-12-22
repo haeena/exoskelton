@@ -7,6 +7,7 @@ from slack import WebClient as SlackClient
 
 from exoskelton.plugin_base import PluginBase
 from exoskelton.slack_argparser import SlackArgumentParser
+from exoskelton.slack_event_context import SlackEventContextMessage
 
 
 class PluginLoader:
@@ -40,14 +41,12 @@ class PluginLoader:
 
     def help_factory(
         self, parser: SlackArgumentParser, **kwarg: Any
-    ) -> Callable[[Arg(str, "user"), Arg(str, "channel"), KwArg(Any)], None]:
-        def help(user: str, channel: str, **kwarg: Any) -> None:
+    ) -> Callable[[Arg(SlackEventContextMessage, "context"), KwArg(Any)], None]:
+        def help_func(context: SlackEventContextMessage, **kwarg: Any) -> None:
             text = parser.format_help()
-            self.slack_client.chat_postEphemeral(
-                user=user, channel=channel, text=text
-            )
+            context.reply_ephemeral(text=text)
 
-        return help
+        return help_func
 
     def create_parser(self) -> SlackArgumentParser:
         parser = SlackArgumentParser(prog=self.prog)
