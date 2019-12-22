@@ -74,7 +74,7 @@ def handle_message(event_data):  # type: ignore
             args.handler(**vars(args))
         except SlackArgumentParserException as e:
             slack_bot_client.chat_postEphemeral(
-                user=user, channel=channel, text=e.message
+                user=user, channel=channel, text=e
             )
         except Exception:
             err = sys.exc_info()

@@ -28,7 +28,7 @@ class PluginBase(metaclass=abc.ABCMeta):
             raise Exception("Failed to call get team_info API")
 
     @abc.abstractmethod
-    def add_parser(self, subparsers: SlackArgumentParser) -> None:
+    def add_parser(self, subparsers: Any) -> None:
         """
         example:
             command_parser = subparsers.add_parser('command', help="command for this plugin")
@@ -115,11 +115,11 @@ class PluginBase(metaclass=abc.ABCMeta):
         rows: List[List[str]]
         if isinstance(items[0], dict):
             header = (
-                items[0].keys() if header is None else header
-            )  # type: ignore
+                items[0].keys() if header is None else header  # type: ignore
+            )
             rows = [
-                [item[key] for key in header] for item in items
-            ]  # type: ignore
+                [item[key] for key in header] for item in items  # type: ignore
+            ]
 
         elif isinstance(items, list):
             if header is None and first_item_is_header:

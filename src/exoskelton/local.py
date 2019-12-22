@@ -2,25 +2,24 @@ import json
 import shlex
 import sys
 from pprint import pprint
+from typing import Any, Callable
 
-from flask import Flask, Response, make_response, request
 from slack import WebClient as SlackClient
-from slackeventsapi import SlackEventAdapter
 
 from exoskelton.plugin_loader import PluginLoader
 from exoskelton.slack_argparser import SlackArgumentParserException
 
 
 class SlackDummyClient:
-    post_methods = ["chat_postMessage", "chat_postEphemeral"]
+    mock_method = ["chat_postMessage", "chat_postEphemeral"]
 
-    def __init__(self, *args, **kwarg):  # type: ignore
+    def __init__(self, *args: Any, **kwarg: Any):
         self.slack_client = SlackClient(*args, **kwarg)
 
-    def __getattr__(self, key):  # type: ignore
-        if key in SlackDummyClient.post_methods:
+    def __getattr__(self, key: str) -> Callable[..., str]:
+        if key in self.mock_method:
 
-            def dummy_function(*args, **kwarg):  # type: ignore
+            def dummy_function(*args: Any, **kwarg: Any) -> str:
                 print(key)
                 pprint(args)
                 pprint(kwarg)
@@ -88,7 +87,7 @@ def handle_message(text: str) -> None:
             args.handler(**vars(args))
         except SlackArgumentParserException as e:
             slack_dummy_client.chat_postEphemeral(
-                user=user, channel=channel, text=e.message
+                user=user, channel=channel, text=e
             )
         except Exception:
             err = sys.exc_info()
